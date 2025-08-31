@@ -1,0 +1,196 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phonetic Alphabet Translator</title>
+<style>
+body {
+font-family: Arial, sans-serif;
+background-color: #f4f4f4;
+margin: 0;
+padding: 0;
+display: flex;
+justify-content: center;
+align-items: center;
+background-image:url("https://develtio.com/app/uploads/2022/06/tts_technology.jpg");
+background-size:cover;
+height: 100vh;
+transition: background-color 0.3s, color 0.3s;
+}
+body.dark-mode {
+background-color: #2e2e2e;
+color: #fff;
+}
+.container {
+text-align: center;
+background: #fff;
+padding: 20px;
+border-radius: 8px;
+box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+transition: background 0.3s, color 0.3s;
+}
+body.dark-mode .container {
+background: #444;
+}
+textarea {
+width: 80%;
+height: 100px;
+margin-bottom: 20px;
+padding: 10px;
+border-radius: 4px;
+border: 1px solid #ccc;
+font-size: 16px;
+}
+
+.button-container {
+margin-bottom: 20px;
+}
+button {
+padding: 10px 20px;
+font-size: 16px;
+cursor: pointer;
+border: none;
+border-radius: 4px;
+background-color: #007BFF;
+color: #fff;
+margin: 5px;
+transition: background-color 0.3s;
+}
+button:hover {
+background-color: #0056b3;
+}
+#output {
+margin-top: 20px;
+font-size: 18px;
+word-wrap: break-word;
+}
+.tts-controls {
+margin: 20px 0;
+display: flex;
+justify-content: center;
+align-items: center;
+gap: 10px;
+}
+.tts-controls label {
+margin-right: 5px;
+}
+.highlight {
+background-color: yellow;
+}
+</style>
+</head>
+<body>
+<center>
+<h1>Phonetic Phenom</h1>
+<label for="text">Enter Text:</label>
+<textarea id="text" placeholder="Type your text here..."></textarea>
+<div class="button-container">
+<button onclick="clearText()">Clear</button>
+<button onclick="copyToClipboard()">Copy to Clipboard</button>
+<button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+</div>
+<br>
+<label for="voice">Select Voice:</label>
+<select id="voice"></select>
+<br><br><br>
+<label for="emotion">Select Emotion:</label>
+<select id="emotion">
+<option value="default">Default</option>
+<option value="happy">Happy</option>
+<option value="sad">Sad</option>
+<option value="angry">Angry</option>
+</select>
+<label for="pitch">Pitch:</label>
+<input type="range" id="pitch" min="0" max="2" value="1" step="0.1">
+<label for="rate">Rate:</label>
+<input type="range" id="rate" min="0.5" max="2" value="1" step="0.1">
+<div class="button-container">
+<br><br>
+<button onclick="pauseAudio()">Pause</button>
+<button onclick="resumeAudio()">Resume</button>
+<button onclick="stopAudio()">Stop</button>
+</div>
+<button onclick="speak()">Speak</button>
+<script>
+const synth = window.speechSynthesis;
+const voiceSelect = document.getElementById('voice');
+const emotionSelect = document.getElementById('emotion');
+const pitchInput = document.getElementById('pitch');
+const rateInput = document.getElementById('rate');
+const textInput = document.getElementById('text');
+function populateVoiceList() {
+const voices = synth.getVoices();
+voiceSelect.innerHTML = '';
+voices.forEach((voice, index) => {
+const option = document.createElement('option');
+option.textContent = `${voice.name} (${voice.lang})`;
+option.value = index;
+voiceSelect.appendChild(option);
+});
+}
+populateVoiceList();
+if (synth.onvoiceschanged !== undefined) {
+synth.onvoiceschanged = populateVoiceList;
+}
+function clearText() {
+textInput.value = '';
+}
+function copyToClipboard() {
+const outputText = textInput.value;
+navigator.clipboard.writeText(outputText).then(() => {
+alert('Copied to clipboard!');
+});
+}
+function toggleDarkMode() {
+document.body.classList.toggle('dark-mode');
+}
+function speak() {
+if (synth.speaking) {
+console.error('SpeechSynthesisUtterance is already speaking.');
+return;
+}
+if (textInput.value !== '') {
+const utterThis = new SpeechSynthesisUtterance(textInput.value);
+const selectedVoice = synth.getVoices()[voiceSelect.value];
+if (selectedVoice) {
+utterThis.voice = selectedVoice;
+}
+utterThis.pitch = pitchInput.value;
+utterThis.rate = rateInput.value;
+// Adjust based on emotion
+switch (emotionSelect.value) {
+case 'happy':
+utterThis.pitch = parseFloat(pitchInput.value) + 0.5;
+utterThis.rate = parseFloat(rateInput.value) + 0.5;
+break;
+case 'sad':
+utterThis.pitch = Math.max(0, parseFloat(pitchInput.value) - 0.5);
+utterThis.rate = Math.max(0.5, parseFloat(rateInput.value) - 0.5);
+break;
+case 'angry':
+utterThis.pitch = parseFloat(pitchInput.value) + 0.3;
+utterThis.rate = parseFloat(rateInput.value) + 0.7;
+break;
+default:
+break;
+}
+synth.speak(utterThis);
+}
+}
+function pauseAudio() {
+if (synth.speaking && !synth.paused) {
+synth.pause();
+}
+}
+function resumeAudio() {
+if (synth.paused) {
+synth.resume();
+}
+}
+function stopAudio() {
+synth.cancel();
+}
+</script>
+</body>
+</html>
